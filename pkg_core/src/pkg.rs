@@ -1,6 +1,7 @@
 use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
+use std::time::Instant;
 
 use memmap2::Mmap;
 use orbis_pfs::directory::DirEntry;
@@ -9,7 +10,7 @@ use orbis_pfs::Pfs;
 use serde::Serialize;
 
 use crate::error::{io_err, CoreError, Result};
-use crate::progress::Progress;
+use crate::progress::{format_eta, format_speed, Progress};
 use crate::sfo::Sfo;
 
 pub const PKG_MAGIC: u32 = 0x7F43_4E54;
@@ -377,6 +378,7 @@ pub fn extract_summary(
     output: &Path,
     progress: &mut dyn Progress,
 ) -> Result<ExtractSummary> {
+    let started = Instant::now();
     progress.report(0, "Lendo cabeçalho do PKG")?;
     let file = File::open(path).map_err(|e| io_err("abrir PKG", e))?;
     let mmap = unsafe { Mmap::map(&file) }.map_err(|e| io_err("mapear PKG", e))?;
@@ -424,7 +426,7 @@ pub fn extract_summary(
                 .map_err(|e| io_err("gravar arquivo extraído", e))?;
             offset += read as u64;
             done += read as u64;
-            report_extract(progress, done, total, &job.rel, index, total_files)?;
+            report_extract(progress, done, total, &job.rel, index, total_files, started)?;
         }
     }
 
@@ -490,6 +492,7 @@ fn report_extract(
     rel: &Path,
     index: usize,
     total_files: u64,
+    started: Instant,
 ) -> Result<()> {
     let pct = if total == 0 {
         100
@@ -497,9 +500,18 @@ fn report_extract(
         ((done.min(total) * 100) / total).min(100) as u8
     };
     let name = rel.file_name().and_then(|n| n.to_str()).unwrap_or("arquivo");
+    let elapsed = started.elapsed().as_secs_f64().max(0.001);
+    let speed = done as f64 / elapsed;
+    let remaining = total.saturating_sub(done.min(total));
+    let eta = if speed > 0.01 { remaining as f64 / speed } else { 0.0 };
     progress.report(
         pct,
-        &format!("Extraindo {name} ({}/{total_files})", index + 1),
+        &format!(
+            "Extraindo {name} ({}/{total_files}) • {}/s • ETA {}",
+            index + 1,
+            format_speed(speed),
+            format_eta(eta)
+        ),
     )
 }
 

@@ -115,12 +115,12 @@ pub extern "system" fn Java_com_deivid_pkgtool_core_NativeCore_analyzeFd(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_com_deivid_pkgtool_core_NativeCore_extract(
-    mut env: JNIEnv,
+pub extern "system" fn Java_com_deivid_pkgtool_core_NativeCore_extract<'local>(
+    mut env: JNIEnv<'local>,
     _this: JObject,
     pkg_path: JString,
     output: JString,
-    callback: JObject,
+    callback: JObject<'local>,
 ) -> jstring {
     reset_cancel();
     let result = (|| {
@@ -149,14 +149,14 @@ pub extern "system" fn Java_com_deivid_pkgtool_core_NativeCore_extract(
 }
 
 #[no_mangle]
-pub extern "system" fn Java_com_deivid_pkgtool_core_NativeCore_pack(
-    mut env: JNIEnv,
+pub extern "system" fn Java_com_deivid_pkgtool_core_NativeCore_pack<'local>(
+    mut env: JNIEnv<'local>,
     _this: JObject,
     input: JString,
     output: JString,
     content_id: JString,
     title: JString,
-    callback: JObject,
+    callback: JObject<'local>,
 ) -> jstring {
     reset_cancel();
     let result = (|| {

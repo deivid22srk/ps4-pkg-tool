@@ -9,6 +9,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.util.Locale
 import kotlin.coroutines.cancellation.CancellationException
 
 typealias CopyProgress = (percent: Int, message: String) -> Unit
@@ -53,6 +54,7 @@ fun copyUriToFile(
 
     val input = context.contentResolver.openInputStream(uri)
         ?: throw IOException("Não foi possível abrir o arquivo de origem")
+    val started = System.nanoTime()
     input.use { source ->
         FileOutputStream(dest).use { output ->
             val buffer = ByteArray(1024 * 1024)
@@ -64,7 +66,12 @@ fun copyUriToFile(
                 output.write(buffer, 0, read)
                 done += read
                 val pct = if (total > 0) ((done * 100) / total).toInt() else -1
-                progress(pct.coerceIn(-1, 99), "Copiando arquivo…")
+                val label = if (total > 0) {
+                    transferMessage("Copiando arquivo", done, total, started)
+                } else {
+                    "Copiando arquivo…"
+                }
+                progress(pct.coerceIn(-1, 99), label)
             }
             output.fd.sync()
         }
@@ -112,6 +119,7 @@ fun copyTreeToDirectory(
         ?: throw IOException("Pasta de origem indisponível")
     dest.mkdirs()
     val total = measureDocumentTree(root)
+    val started = System.nanoTime()
     var doneBytes = 0L
     var doneFiles = 0
 
@@ -138,12 +146,12 @@ fun copyTreeToDirectory(
                         if (read <= 0) break
                         output.write(buffer, 0, read)
                         doneBytes += read
-                        reportCopy(progress, doneBytes, doneFiles, total, relative)
+                        reportCopy(progress, doneBytes, doneFiles, total, relative, started)
                     }
                 }
             }
             doneFiles++
-            reportCopy(progress, doneBytes, doneFiles, total, relative)
+            reportCopy(progress, doneBytes, doneFiles, total, relative, started)
         }
     }
 
@@ -164,6 +172,7 @@ fun copyDirectoryToTree(
     val destination = root.createDirectory(name)
         ?: throw IOException("Não foi possível criar a pasta de destino")
     val total = measureFileTree(source)
+    val started = System.nanoTime()
     var doneBytes = 0L
     var doneFiles = 0
 
@@ -192,12 +201,12 @@ fun copyDirectoryToTree(
                                 if (read <= 0) break
                                 out.write(buffer, 0, read)
                                 doneBytes += read
-                                reportCopy(progress, doneBytes, doneFiles, total, rel)
+                                reportCopy(progress, doneBytes, doneFiles, total, rel, started)
                             }
                         }
                     }
                     doneFiles++
-                    reportCopy(progress, doneBytes, doneFiles, total, rel)
+                    reportCopy(progress, doneBytes, doneFiles, total, rel, started)
                 }
             }
         }
@@ -219,6 +228,7 @@ fun copyFileToDocument(
     try {
         val output = context.contentResolver.openOutputStream(outputUri, "wt")
             ?: throw IOException("Não foi possível abrir o destino")
+        val started = System.nanoTime()
         output.use { out ->
             FileInputStream(source).use { sourceStream ->
                 val total = source.length().coerceAtLeast(1L)
@@ -231,7 +241,7 @@ fun copyFileToDocument(
                     out.write(buffer, 0, read)
                     done += read
                     val pct = ((done * 100) / total).toInt().coerceIn(0, 99)
-                    progress(pct, "Gravando PKG de saída…")
+                    progress(pct, transferMessage("Gravando PKG de saída", done, total, started))
                 }
                 out.flush()
             }
@@ -302,12 +312,43 @@ private fun reportCopy(
     doneFiles: Int,
     total: TreeMeasure,
     relative: String,
+    startedNanos: Long,
 ) {
     val pct = when {
         total.bytes > 0 -> ((doneBytes * 100) / total.bytes).toInt()
         total.files > 0 -> ((doneFiles * 100) / total.files).toInt()
         else -> -1
     }
-    val label = relative.ifEmpty { "Copiando…" }
+    val base = relative.ifEmpty { "Copiando…" }
+    val label = if (total.bytes > 0) {
+        transferMessage(base, doneBytes, total.bytes, startedNanos)
+    } else {
+        base
+    }
     progress(pct.coerceIn(-1, 99), label)
+}
+
+private fun transferMessage(prefix: String, done: Long, total: Long, startedNanos: Long): String {
+    val elapsed = ((System.nanoTime() - startedNanos).coerceAtLeast(1L)) / 1_000_000_000.0
+    val speed = (done.toDouble() / elapsed).coerceAtLeast(0.0)
+    val remaining = (total - done).coerceAtLeast(0L)
+    val eta = if (speed > 1.0) remaining / speed else 0.0
+    return "$prefix • ${formatSpeed(speed)}/s • ETA ${formatEta(eta)}"
+}
+
+private fun formatSpeed(bytesPerSecond: Double): String = when {
+    bytesPerSecond >= 1_000_000_000.0 -> String.format(Locale.US, "%.1f GB", bytesPerSecond / 1_000_000_000.0)
+    bytesPerSecond >= 1_000_000.0 -> String.format(Locale.US, "%.1f MB", bytesPerSecond / 1_000_000.0)
+    bytesPerSecond >= 1_000.0 -> String.format(Locale.US, "%.1f KB", bytesPerSecond / 1_000.0)
+    else -> String.format(Locale.US, "%.0f B", bytesPerSecond)
+}
+
+private fun formatEta(seconds: Double): String {
+    if (!seconds.isFinite() || seconds <= 0.0) return "—"
+    val total = kotlin.math.ceil(seconds).toLong()
+    return when {
+        total >= 3600 -> "${total / 3600}h${(total % 3600) / 60}m"
+        total >= 60 -> "${total / 60}m${total % 60}s"
+        else -> "${total}s"
+    }
 }

@@ -365,11 +365,12 @@ pub fn build_tree(mut tree: PackTree, min_blocks: u64) -> Result<BuiltPfs> {
         let no = inodes.len() as u32;
         inodes.push(Inode::new(MODE_DIR, 2, FLAG_READONLY, BLOCK_SIZE));
         let parent = tree.nodes[*idx].parent.unwrap_or(0);
+        let parent_inode = tree.nodes[parent].inode_no;
         tree.nodes[*idx].inode_no = no;
         tree.nodes[*idx].dirents.push(Dirent::new(no, 4, "."));
         tree.nodes[*idx]
             .dirents
-            .push(Dirent::new(tree.nodes[parent].inode_no, 5, ".."));
+            .push(Dirent::new(parent_inode, 5, ".."));
         let name = tree.nodes[*idx].name.clone();
         tree.nodes[parent]
             .dirents
@@ -456,7 +457,8 @@ pub fn build_tree(mut tree: PackTree, min_blocks: u64) -> Result<BuiltPfs> {
     order.extend(dirs.iter().copied());
     order.extend(files.iter().copied());
 
-    for idx in order {
+    for idx in &order {
+        let idx = *idx;
         let no = tree.nodes[idx].inode_no as usize;
         let is_dir = tree.nodes[idx].is_dir;
         let blocks = if is_dir {
@@ -790,7 +792,7 @@ fn write_pfsc(
     put_u64(&mut header, 0x20, header_size);
     put_u64(&mut header, 0x28, num_blocks * PFSC_BLOCK);
     for i in 0..=num_blocks {
-        put_u64(&mut header, 0x400 + i * 8, header_size + i * PFSC_BLOCK);
+        put_u64(&mut header, (0x400 + i * 8) as usize, header_size + i * PFSC_BLOCK);
     }
     sink.write_at(offset, &header)?;
 
