@@ -12,6 +12,13 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -54,8 +61,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.LinearWavyProgressIndicator
-import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -75,6 +81,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -82,6 +92,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import kotlin.math.PI
+import kotlin.math.sin
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.deivid.pkgtool.BuildConfig
@@ -336,7 +348,7 @@ private fun ExtractCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    LoadingIndicator(modifier = Modifier.size(22.dp))
+                    CircularProgressIndicator(modifier = Modifier.size(22.dp), strokeWidth = 2.5.dp)
                     Text(
                         text = stringResource(R.string.reading_pkg),
                         style = MaterialTheme.typography.bodyMedium,
@@ -639,7 +651,7 @@ private fun JobCard(
             when {
                 job.running -> {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        LoadingIndicator(modifier = Modifier.size(26.dp))
+                        CircularProgressIndicator(modifier = Modifier.size(26.dp), strokeWidth = 3.dp)
                         Spacer(Modifier.width(10.dp))
                         Text(
                             text = stringResource(
@@ -649,14 +661,12 @@ private fun JobCard(
                             style = MaterialTheme.typography.titleMedium,
                         )
                     }
-                    if (job.indeterminate) {
-                        LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth())
-                    } else {
-                        LinearWavyProgressIndicator(
-                            progress = { job.progress / 100f },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
+                    WavyProgress(
+                        progress = if (job.indeterminate) null else job.progress / 100f,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(12.dp),
+                    )
                     Text(
                         text = job.message,
                         style = MaterialTheme.typography.bodyMedium,
@@ -932,4 +942,68 @@ private fun openResult(context: Context, result: JobResult) {
                 Toast.LENGTH_LONG,
             ).show()
         }
+}
+
+@Composable
+private fun WavyProgress(
+    progress: Float?,
+    modifier: Modifier = Modifier,
+) {
+    val transition = rememberInfiniteTransition(label = "wavy")
+    val phase by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1200, easing = LinearEasing)),
+        label = "wavyPhase",
+    )
+    val settled by animateFloatAsState(
+        targetValue = progress ?: 0f,
+        animationSpec = tween(300),
+        label = "wavyProgress",
+    )
+    val track = MaterialTheme.colorScheme.surfaceVariant
+    val active = MaterialTheme.colorScheme.primary
+    Canvas(modifier = modifier) {
+        val stroke = 3.dp.toPx()
+        val amplitude = size.height * 0.30f
+        val wavelength = 22.dp.toPx().coerceAtLeast(1f)
+        val centerY = size.height / 2f
+        val step = 2.dp.toPx().coerceAtLeast(1f)
+        fun wave(start: Float, end: Float): Path {
+            val path = Path()
+            var x = start
+            var first = true
+            while (x <= end) {
+                val y = centerY + sin((x / wavelength) * (2f * PI.toFloat()) + phase * (2f * PI.toFloat())) * amplitude
+                if (first) {
+                    path.moveTo(x, y)
+                    first = false
+                } else {
+                    path.lineTo(x, y)
+                }
+                x += step
+            }
+            return path
+        }
+        drawPath(
+            path = wave(0f, size.width),
+            color = track,
+            style = Stroke(width = stroke, cap = StrokeCap.Round),
+        )
+        if (progress == null) {
+            val segment = size.width * 0.28f
+            val offset = ((phase * 1.35f) % 1f) * (size.width + segment) - segment
+            drawPath(
+                path = wave(offset.coerceAtLeast(0f), (offset + segment).coerceAtMost(size.width)),
+                color = active,
+                style = Stroke(width = stroke, cap = StrokeCap.Round),
+            )
+        } else if (settled > 0f) {
+            drawPath(
+                path = wave(0f, size.width * settled.coerceIn(0f, 1f)),
+                color = active,
+                style = Stroke(width = stroke, cap = StrokeCap.Round),
+            )
+        }
+    }
 }
