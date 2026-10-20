@@ -10,8 +10,11 @@ import com.deivid.pkgtool.core.NativeJson
 import com.deivid.pkgtool.core.PkgException
 import com.deivid.pkgtool.data.HistoryEntry
 import com.deivid.pkgtool.data.HistoryStore
+import com.deivid.pkgtool.service.JobMarker
+import com.deivid.pkgtool.service.PkgJobState
 import com.deivid.pkgtool.service.PkgService
 import com.deivid.pkgtool.service.documentName
+import com.deivid.pkgtool.service.persistDocumentPermission
 import com.deivid.pkgtool.service.persistTreePermission
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,7 +47,32 @@ class PkgViewModel(application: Application) : AndroidViewModel(application) {
     private val _state = MutableStateFlow(UiState(history = historyStore.list()))
     val state: StateFlow<UiState> = _state.asStateFlow()
 
+    init {
+        // O serviço roda no mesmo processo. Se o processo foi recriado e ainda
+        // existe um marcador, a operação não sobreviveu (Android encerrou o
+        // processo/serviço) e o usuário precisa saber disso.
+        if (!PkgJobState.state.value.running) {
+            JobMarker.take(application)?.let { kind ->
+                val detail = application.getString(R.string.history_interrupted)
+                historyStore.add(
+                    HistoryEntry(
+                        kind = kind,
+                        ok = false,
+                        label = application.getString(R.string.history_error_label),
+                        detail = detail,
+                        timestamp = System.currentTimeMillis(),
+                        durationMs = 0L,
+                    ),
+                )
+                _state.update {
+                    it.copy(history = historyStore.list(), snackbar = detail)
+                }
+            }
+        }
+    }
+
     fun onPkgPicked(uri: Uri) {
+        persistDocumentPermission(getApplication(), uri, write = false)
         val name = documentName(getApplication(), uri)
         _state.update {
             it.copy(
@@ -109,6 +137,7 @@ class PkgViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun onPackOutputPicked(uri: Uri) {
+        persistDocumentPermission(getApplication(), uri, write = true)
         _state.update {
             it.copy(
                 packOutputUri = uri,

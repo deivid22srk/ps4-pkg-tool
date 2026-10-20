@@ -78,6 +78,7 @@ class PkgService : Service() {
                 val output = intent.getStringExtra(EXTRA_OUTPUT_URI) ?: return START_NOT_STICKY
 
                 kind = parsedKind
+                JobMarker.mark(this, parsedKind)
                 cancelRequested = false
                 lastPercent = -2
                 lastMessage = ""
@@ -284,6 +285,7 @@ class PkgService : Service() {
             durationMs = duration,
         )
         PkgJobState.success(result)
+        JobMarker.clear(this)
         history?.add(
             HistoryEntry(
                 kind = kind,
@@ -306,6 +308,7 @@ class PkgService : Service() {
         val currentKind = kind
         val duration = System.currentTimeMillis() - started
         PkgJobState.failure(JobError(currentKind, code, message))
+        JobMarker.clear(this)
         history?.add(
             HistoryEntry(
                 kind = currentKind ?: JobKind.EXTRACT,

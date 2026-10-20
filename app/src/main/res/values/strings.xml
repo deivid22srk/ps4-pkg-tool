@@ -47,6 +47,7 @@
     <string name="history_empty">As operações concluídas aparecem aqui.</string>
     <string name="history_clear">Limpar</string>
     <string name="history_error_label">Falha</string>
+    <string name="history_interrupted">Operação interrompida pelo sistema. O arquivo parcial foi descartado.</string>
 
     <string name="notification_channel_name">Operações de PKG</string>
     <string name="notification_channel_description">Progresso de extração e criação de PKGs</string>

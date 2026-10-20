@@ -24,6 +24,14 @@ fun persistTreePermission(context: Context, uri: Uri) {
     }
 }
 
+fun persistDocumentPermission(context: Context, uri: Uri, write: Boolean = false) {
+    val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+        if (write) Intent.FLAG_GRANT_WRITE_URI_PERMISSION else 0
+    runCatching {
+        context.contentResolver.takePersistableUriPermission(uri, flags)
+    }
+}
+
 fun documentName(context: Context, uri: Uri): String {
     return DocumentFile.fromSingleUri(context, uri)?.name
         ?: DocumentFile.fromTreeUri(context, uri)?.name
@@ -195,7 +203,7 @@ fun copyDirectoryToTree(
         }
         walk(source, destination, "")
     } catch (t: Throwable) {
-        runCatching { destination.delete() }
+        deleteDocumentTree(destination)
         throw t
     }
     return destination.uri
@@ -208,25 +216,41 @@ fun copyFileToDocument(
     isCancelled: () -> Boolean,
     progress: CopyProgress,
 ) {
-    val input = FileInputStream(source)
-    val output = context.contentResolver.openOutputStream(outputUri, "wt")
-        ?: throw IOException("Não foi possível abrir o destino")
-    input.use { sourceStream ->
+    try {
+        val output = context.contentResolver.openOutputStream(outputUri, "wt")
+            ?: throw IOException("Não foi possível abrir o destino")
         output.use { out ->
-            val total = source.length().coerceAtLeast(1L)
-            var done = 0L
-            val buffer = ByteArray(1024 * 1024)
-            while (true) {
-                if (isCancelled()) throw CancellationException("Cancelado")
-                val read = sourceStream.read(buffer)
-                if (read <= 0) break
-                out.write(buffer, 0, read)
-                done += read
-                val pct = ((done * 100) / total).toInt().coerceIn(0, 99)
-                progress(pct, "Gravando PKG de saída…")
+            FileInputStream(source).use { sourceStream ->
+                val total = source.length().coerceAtLeast(1L)
+                var done = 0L
+                val buffer = ByteArray(1024 * 1024)
+                while (true) {
+                    if (isCancelled()) throw CancellationException("Cancelado")
+                    val read = sourceStream.read(buffer)
+                    if (read <= 0) break
+                    out.write(buffer, 0, read)
+                    done += read
+                    val pct = ((done * 100) / total).toInt().coerceIn(0, 99)
+                    progress(pct, "Gravando PKG de saída…")
+                }
+                out.flush()
             }
-            out.flush()
         }
+    } catch (t: Throwable) {
+        // Não deixe um PKG truncado no destino quando a operação falhar.
+        runCatching {
+            DocumentFile.fromSingleUri(context, outputUri)?.delete()
+        }
+        throw t
+    }
+}
+
+private fun deleteDocumentTree(document: DocumentFile) {
+    runCatching {
+        if (document.isDirectory) {
+            document.listFiles().forEach { deleteDocumentTree(it) }
+        }
+        document.delete()
     }
 }
 

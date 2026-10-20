@@ -47,6 +47,7 @@
     <string name="history_empty">Completed operations appear here.</string>
     <string name="history_clear">Clear</string>
     <string name="history_error_label">Failure</string>
+    <string name="history_interrupted">Operation interrupted by the system. Partial output was discarded.</string>
 
     <string name="notification_channel_name">PKG operations</string>
     <string name="notification_channel_description">Progress for PKG extraction and creation</string>
