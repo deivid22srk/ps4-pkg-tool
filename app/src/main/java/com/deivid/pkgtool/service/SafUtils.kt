@@ -26,8 +26,11 @@ fun persistTreePermission(context: Context, uri: Uri) {
 }
 
 fun persistDocumentPermission(context: Context, uri: Uri, write: Boolean = false) {
-    val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-        if (write) Intent.FLAG_GRANT_WRITE_URI_PERMISSION else 0
+    val flags = if (write) {
+        Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+    } else {
+        Intent.FLAG_GRANT_READ_URI_PERMISSION
+    }
     runCatching {
         context.contentResolver.takePersistableUriPermission(uri, flags)
     }
