@@ -73,14 +73,15 @@ jobs:
         run: cargo test --manifest-path pkg_core/Cargo.toml --all-targets
 
       - name: Build Rust JNI libraries
+        working-directory: pkg_core
         run: |
           cargo ndk \
             --platform 26 \
             -t arm64-v8a \
             -t armeabi-v7a \
             -t x86_64 \
-            -o app/src/main/jniLibs \
-            build --release --manifest-path pkg_core/Cargo.toml
+            -o ../app/src/main/jniLibs \
+            build --release
 
       - name: Configure release signing
         env:
