@@ -10,8 +10,8 @@ pub enum CoreError {
     #[error("arquivo PKG inválido ou corrompido: {0}")]
     InvalidPkg(String),
 
-    #[error("o PKG usa PFS criptografado; chaves proprietárias não são incluídas no app")]
-    EncryptedPkg,
+    #[error("o PKG usa PFS criptografado e as chaves não puderam ser derivadas: {0}")]
+    EncryptedPkg(String),
 
     #[error("o PKG não contém uma imagem PFS reconhecível")]
     NoPfsImage,
@@ -37,7 +37,7 @@ impl CoreError {
         match self {
             CoreError::Cancelled => "CANCELLED",
             CoreError::InvalidPkg(_) => "INVALID_PKG",
-            CoreError::EncryptedPkg => "ENCRYPTED_PKG",
+            CoreError::EncryptedPkg(_) => "ENCRYPTED_PKG",
             CoreError::NoPfsImage => "NO_PFS",
             CoreError::Unsupported(_) => "UNSUPPORTED",
             CoreError::InvalidInput(_) => "INVALID_INPUT",

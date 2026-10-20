@@ -17,6 +17,8 @@ sha2 = "0.10"
 memmap2 = "0.9"
 orbis-pfs = "0.1.0"
 thiserror = "2"
+aes = "0.8"
+rsa = "0.9"
 
 [profile.release]
 opt-level = 3

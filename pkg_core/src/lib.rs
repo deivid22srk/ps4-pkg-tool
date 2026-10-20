@@ -7,6 +7,7 @@
 //! de formato.
 
 pub mod error;
+pub mod keys;
 pub mod pack;
 pub mod pfs_builder;
 pub mod pkg;

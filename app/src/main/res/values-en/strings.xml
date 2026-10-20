@@ -26,7 +26,7 @@
     <string name="info_size">Size</string>
     <string name="info_files">Files</string>
     <string name="info_type">Type</string>
-    <string name="info_warning_encrypted">Encrypted PFS: extraction requires proprietary keys.</string>
+    <string name="info_warning_encrypted">Encrypted PFS: could not derive the extraction keys.</string>
     <string name="file_count">%1$d files</string>
 
     <string name="options_show">Packaging options</string>
@@ -72,7 +72,7 @@
 
     <string name="err_cancelled">Operation cancelled.</string>
     <string name="err_invalid_pkg">The file is not a valid PKG or is corrupted.</string>
-    <string name="err_encrypted">This PKG uses retail encryption and cannot be extracted without proprietary keys.</string>
+    <string name="err_encrypted">Could not derive the PFS keys for this PKG (format not covered by the retail derivation).</string>
     <string name="err_no_pfs">The PKG does not contain a recognizable PFS image.</string>
     <string name="err_no_space">Not enough space at the destination.</string>
     <string name="err_invalid_input">Invalid input. Check the paths and Content ID.</string>

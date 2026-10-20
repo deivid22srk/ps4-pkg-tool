@@ -6,11 +6,15 @@ Framework (SAF). O processamento acontece no próprio aparelho, sem enviar
 arquivos para servidores.
 
 > Projeto independente, sem vínculo com a Sony Interactive Entertainment.
-> Não inclui chaves, passcodes ou qualquer material proprietário.
+> As chaves usadas são keysets públicos documentados na comunidade (psdevwiki,
+> shadPS4); nenhum material confidencial da Sony é incluído.
 
 ## Recursos
 
 - Extração de PKG para uma pasta escolhida pelo usuário (SAF).
+- **Extração de jogos comerciais (PKG de varejo)**: as chaves PFS são derivadas
+  do próprio PKG (entradas 0x10/0x20, mesma cadeia do shadPS4) e a imagem é
+  descriptografada em XTS-AES-128 durante a leitura.
 - Empacotamento de uma pasta em um PKG no formato *homebrew*/não assinado.
 - Análise do PKG sem copiá-lo: content ID, título, título ID, categoria,
   tamanho, quantidade de arquivos e aviso de criptografia.
@@ -28,10 +32,10 @@ arquivos para servidores.
 
 ## Limitações importantes
 
-1. **PKGs comerciais criptografados não são suportados.** A extração cobre
-   imagens PFS não criptografadas, como as usadas em pacotes *fake*/homebrew.
-   Chaves proprietárias (EKPFS/RSA) não são incluídas e não há suporte a
-   passcode.
+1. **PKGs comerciais são suportados via derivação de chaves do próprio arquivo**
+   (entradas `ENTRY_KEYS`/`IMAGE_KEY`, algoritmo idêntico ao do emulador
+   shadPS4). PKGs que não trazem essas entradas (ou cujos blobs não decifram
+   com os keysets públicos) continuam sem suporte.
 2. **O PKG criado é não assinado e não criptografado.** Ele serve como pacote
    *homebrew* para estudo e testes. Não é um PKG assinado pela Sony e a
    instalação depende do ambiente utilizado no console; não há garantia de
@@ -89,8 +93,10 @@ entradas de metadados no PKG.
 - **Kotlin/Compose** cuida da interface, do SAF (`ACTION_OPEN_DOCUMENT`,
   `ACTION_OPEN_DOCUMENT_TREE`, `ACTION_CREATE_DOCUMENT`, `DocumentFile`) e do
   Foreground Service.
-- **Rust (`pkg_core`)** faz o parsing do PKG, a leitura da imagem PFS, a
-  extração e a criação do PKG/PFS. A comunicação com o Kotlin é feita por JNI;
+- **Rust (`pkg_core`)** faz o parsing do PKG, a derivação de chaves PFS
+  (entradas 0x10/0x20 → RSA → SHA-256 → AES-CBC → RSA → `ekpfs`), a leitura da
+  imagem PFS (com descriptografia XTS-AES-128 via [`orbis-pfs`](https://crates.io/crates/orbis-pfs)),
+  a extração e a criação do PKG/PFS. A comunicação com o Kotlin é feita por JNI;
   o progresso e o cancelamento usam callback e um `AtomicBool` global.
 - A leitura de PFS utiliza o crate [`orbis-pfs`](https://crates.io/crates/orbis-pfs)
   (MIT OR Apache-2.0). A escrita de PFS/PKG foi implementada neste projeto.
@@ -149,8 +155,14 @@ pkg_core/                  Núcleo Rust (PKG, PFS, SFO, JNI)
 
 ## Referências e licenças
 
-- [`orbis-pfs`](https://crates.io/crates/orbis-pfs) — leitura de PFS;
-  licença MIT OR Apache-2.0.
+- [`orbis-pfs`](https://crates.io/crates/orbis-pfs) — leitura de PFS
+  (incluindo descriptografia XTS de imagens cifradas); licença MIT OR Apache-2.0.
+- [shadPS4](https://github.com/shadps4-emu/shadPS4) — referência do algoritmo de
+  derivação de chaves PFS para PKGs comerciais (`src/core/crypto/crypto.cpp`,
+  `keys.h` e `src/core/file_format/pkg.cpp`, tag `v.0.7.0`). O projeto é
+  GPL-2.0-or-later; os keysets RSA e o fluxo de derivação foram reimplementados
+  em Rust a partir das constantes públicas documentadas no projeto e no
+  [psdevwiki](https://www.psdevwiki.com/ps4/).
 - [LibOrbisPkg](https://github.com/maxton/LibOrbisPkg) — usado apenas como
   **referência de formato** (PFS, PFSC, PKG e SFO). O projeto é LGPL-3.0; nenhum
   código dele foi copiado para este repositório. Se você reutilizar código dele,

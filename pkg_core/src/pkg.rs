@@ -10,6 +10,7 @@ use orbis_pfs::Pfs;
 use serde::Serialize;
 
 use crate::error::{io_err, CoreError, Result};
+use crate::keys::derive_ekpfs;
 use crate::progress::{format_eta, format_speed, Progress};
 use crate::sfo::Sfo;
 
@@ -210,13 +211,27 @@ pub fn analyze_bytes(data: &[u8]) -> Result<AnalyzeInfo> {
     };
 
     if pfs_is_encrypted(pfs) {
-        info.encrypted = true;
-        info.warning =
-            "PFS criptografado: a extração exige chaves que não acompanham o aplicativo.".into();
+        // PFS criptografado (PKG comercial). As chaves são derivadas das
+        // entradas 0x10/0x20 do próprio PKG (mesma cadeia do shadPS4); se a
+        // derivação for bem-sucedida, a extração é possível normalmente.
+        match derive_ekpfs(data, &header) {
+            Ok(_) => {
+                // `encrypted` sinaliza à UI "extração bloqueada" — com chaves
+                // derivadas, o PKG extrai normalmente.
+                info.encrypted = false;
+                info.warning =
+                    "PFS criptografado: chaves derivadas com sucesso — extração suportada."
+                        .to_string();
+            }
+            Err(e) => {
+                info.encrypted = true;
+                info.warning = format!("PFS criptografado: {}", e.message());
+            }
+        }
         return Ok(info);
     }
 
-    match open_content_pfs(pfs) {
+    match open_content_pfs(pfs, None) {
         Ok(pfs) => match collect_content(&pfs) {
             Ok(content) => {
                 info.file_count = content.files.len() as u64;
@@ -262,8 +277,8 @@ fn pfs_is_encrypted(pfs: &[u8]) -> bool {
     mode & 0x4 != 0
 }
 
-fn open_content_pfs<'a>(image: &'a [u8]) -> Result<Arc<Pfs<'a>>> {
-    let outer = orbis_pfs::open_slice(image, None)
+fn open_content_pfs<'a>(image: &'a [u8], ekpfs: Option<&[u8]>) -> Result<Arc<Pfs<'a>>> {
+    let outer = orbis_pfs::open_slice(image, ekpfs)
         .map_err(|e| CoreError::InvalidPkg(format!("PFS externo: {e}")))?;
 
     let mut root = outer
@@ -386,12 +401,16 @@ pub fn extract_summary(
     let header = PkgHeader::parse(data)?;
     let entries = parse_entries(data, &header)?;
     let pfs = pfs_slice(data, &header)?;
+    let mut ekpfs: Option<[u8; 32]> = None;
     if pfs_is_encrypted(pfs) {
-        return Err(CoreError::EncryptedPkg);
+        // PKG comercial: deriva as chaves PFS das entradas 0x10/0x20
+        // (mesma cadeia do shadPS4) e destrava a leitura via XTS.
+        progress.report(1, "Derivando chaves PFS (PKG comercial)")?;
+        ekpfs = Some(derive_ekpfs(data, &header)?);
     }
 
     progress.report(2, "Abrindo sistema de arquivos PFS")?;
-    let pfs = open_content_pfs(pfs)?;
+    let pfs = open_content_pfs(pfs, ekpfs.as_ref().map(|k| k.as_slice()))?;
     let content = collect_content(&pfs)?;
     let total: u64 = content.files.iter().map(|f| f.file.len()).sum();
     let total_files = content.files.len() as u64;

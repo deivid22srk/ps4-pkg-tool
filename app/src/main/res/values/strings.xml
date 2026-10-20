@@ -26,7 +26,7 @@
     <string name="info_size">Tamanho</string>
     <string name="info_files">Arquivos</string>
     <string name="info_type">Tipo</string>
-    <string name="info_warning_encrypted">PFS criptografado: não é possível extrair sem chaves proprietárias.</string>
+    <string name="info_warning_encrypted">PFS criptografado: não foi possível derivar as chaves de extração.</string>
     <string name="file_count">%1$d arquivos</string>
 
     <string name="options_show">Opções de empacotamento</string>
@@ -72,7 +72,7 @@
 
     <string name="err_cancelled">Operação cancelada.</string>
     <string name="err_invalid_pkg">O arquivo não é um PKG válido ou está corrompido.</string>
-    <string name="err_encrypted">Este PKG usa criptografia de varejo e não pode ser extraído sem chaves proprietárias.</string>
+    <string name="err_encrypted">Não foi possível derivar as chaves PFS deste PKG (formato não suportado pela derivação de varejo).</string>
     <string name="err_no_pfs">O PKG não contém uma imagem PFS reconhecível.</string>
     <string name="err_no_space">Espaço insuficiente no destino.</string>
     <string name="err_invalid_input">Entrada inválida. Verifique os caminhos e o Content ID.</string>
