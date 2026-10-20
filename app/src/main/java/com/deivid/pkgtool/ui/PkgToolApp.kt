@@ -974,7 +974,8 @@ private fun WavyProgress(
             var x = start
             var first = true
             while (x <= end) {
-                val y = centerY + sin((x / wavelength) * (2f * PI.toFloat()) + phase * (2f * PI.toFloat())) * amplitude
+                val angle = (x / wavelength).toDouble() * (2.0 * PI) + phase.toDouble() * (2.0 * PI)
+                val y = centerY + sin(angle).toFloat() * amplitude
                 if (first) {
                     path.moveTo(x, y)
                     first = false
