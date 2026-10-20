@@ -1,5 +1,5 @@
 use std::collections::{HashMap, HashSet};
-use std::fs::{self, File};
+use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 
@@ -225,7 +225,13 @@ fn pack_inner_and_outer(
     }
 
     progress.report(46, "Reservando arquivo PKG")?;
-    let mut file = File::create(output).map_err(|e| io_err("criar PKG de saída", e))?;
+    let mut file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(output)
+        .map_err(|e| io_err("criar PKG de saída", e))?;
     file.set_len(package_size)
         .map_err(|e| io_err("reservar espaço do PKG", e))?;
 
