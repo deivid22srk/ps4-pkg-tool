@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PKG Tool PS4</string>
+    <string name="app_tagline">Extract and create PS4 .pkg packages on your device, with live progress.</string>
+
+    <string name="extract_title">Extract</string>
+    <string name="extract_desc">Open a .pkg and choose where to save the files.</string>
+    <string name="pack_title">Pack</string>
+    <string name="pack_desc">Turn a folder into an unsigned .pkg.</string>
+
+    <string name="select_pkg">PKG file</string>
+    <string name="select_dest_folder">Destination folder</string>
+    <string name="select_source_folder">Source folder</string>
+    <string name="select_output_file">Output file</string>
+    <string name="no_selection">None selected</string>
+    <string name="reading_pkg">Reading PKG header…</string>
+
+    <string name="start_extract">Extract PKG</string>
+    <string name="start_pack">Create PKG</string>
+    <string name="cancel">Cancel</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="open_result">Open result</string>
+
+    <string name="info_untitled">Untitled PKG</string>
+    <string name="info_content_id">Content ID</string>
+    <string name="info_size">Size</string>
+    <string name="info_files">Files</string>
+    <string name="info_type">Type</string>
+    <string name="info_warning_encrypted">Encrypted PFS: extraction requires proprietary keys.</string>
+    <string name="file_count">%1$d files</string>
+
+    <string name="options_show">Packaging options</string>
+    <string name="options_hide">Hide options</string>
+    <string name="content_id_label">Content ID (optional)</string>
+    <string name="content_id_hint">UP0000-CUSA00000_00-NAME000000000000</string>
+    <string name="content_id_support">Format: 36 characters. If empty, the app generates one.</string>
+    <string name="title_label">Title (optional)</string>
+    <string name="title_hint">My game</string>
+
+    <string name="progress_extracting">Extracting PKG</string>
+    <string name="progress_packing">Creating PKG</string>
+    <string name="result_success">Done</string>
+    <string name="result_error">Could not finish</string>
+    <string name="error_details">Details</string>
+
+    <string name="history_title">History</string>
+    <string name="history_empty">Completed operations appear here.</string>
+    <string name="history_clear">Clear</string>
+    <string name="history_error_label">Failure</string>
+
+    <string name="notification_channel_name">PKG operations</string>
+    <string name="notification_channel_description">Progress for PKG extraction and creation</string>
+    <string name="notif_title_extract">Extracting PKG</string>
+    <string name="notif_title_pack">Creating PKG</string>
+    <string name="notif_done">Operation completed</string>
+    <string name="notif_failed">Operation failed</string>
+    <string name="action_cancel">Cancel</string>
+
+    <string name="status_preparing_extract">Preparing extraction…</string>
+    <string name="status_preparing_pack">Preparing packaging…</string>
+    <string name="status_copying_pkg">Copying PKG to cache…</string>
+    <string name="status_reading_pkg">Reading and extracting PFS…</string>
+    <string name="status_copying_result">Copying files to the selected folder…</string>
+    <string name="status_copying_source">Copying source folder…</string>
+    <string name="status_building_pkg">Building PFS and PKG…</string>
+    <string name="status_writing_output">Writing output PKG…</string>
+    <string name="status_done">Done</string>
+    <string name="status_extract_done">Extraction completed</string>
+    <string name="status_pack_done">PKG created</string>
+    <string name="status_cancelling">Cancelling…</string>
+
+    <string name="err_cancelled">Operation cancelled.</string>
+    <string name="err_invalid_pkg">The file is not a valid PKG or is corrupted.</string>
+    <string name="err_encrypted">This PKG uses retail encryption and cannot be extracted without proprietary keys.</string>
+    <string name="err_no_pfs">The PKG does not contain a recognizable PFS image.</string>
+    <string name="err_no_space">Not enough space at the destination.</string>
+    <string name="err_invalid_input">Invalid input. Check the paths and Content ID.</string>
+    <string name="err_unsupported">Not supported in this version.</string>
+    <string name="err_io">Read/write failure. Check free space and permissions.</string>
+    <string name="err_unknown">Unexpected failure.</string>
+
+    <string name="about_title">About PKG Tool</string>
+    <string name="about_body">This app reads unencrypted PKGs, extracts the PFS contents and creates unsigned PKGs from a folder.\n\n• Retail encrypted PKGs are not supported: no proprietary keys are included.\n• Created PKGs are homebrew-style and are not signed by Sony.\n• This version accepts PKGs up to 4 GiB.\n• File access uses the Storage Access Framework (SAF); no broad storage permission is requested.\n\nBuilt with Rust, Jetpack Compose and Material 3 Expressive.</string>
+    <string name="close">Close</string>
+    <string name="footer_version">Rust + Jetpack Compose • v%1$s</string>
+    <string name="unsupported_note">Retail encrypted PKGs are not supported. Created packages are unsigned.</string>
+    <string name="open_failed">No app found to open the result.</string>
+</resources>

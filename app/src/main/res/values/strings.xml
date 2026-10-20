@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PKG Tool PS4</string>
+    <string name="app_tagline">Extraia e crie pacotes .pkg do PS4 no seu aparelho, com progresso em tempo real.</string>
+
+    <string name="extract_title">Extrair</string>
+    <string name="extract_desc">Abra um .pkg e escolha onde salvar os arquivos.</string>
+    <string name="pack_title">Empacotar</string>
+    <string name="pack_desc">Transforme uma pasta em um .pkg não assinado.</string>
+
+    <string name="select_pkg">Arquivo .pkg</string>
+    <string name="select_dest_folder">Pasta de destino</string>
+    <string name="select_source_folder">Pasta de origem</string>
+    <string name="select_output_file">Arquivo de saída</string>
+    <string name="no_selection">Nenhum selecionado</string>
+    <string name="reading_pkg">Lendo cabeçalho do PKG…</string>
+
+    <string name="start_extract">Extrair PKG</string>
+    <string name="start_pack">Criar PKG</string>
+    <string name="cancel">Cancelar</string>
+    <string name="dismiss">Dispensar</string>
+    <string name="open_result">Abrir resultado</string>
+
+    <string name="info_untitled">PKG sem título</string>
+    <string name="info_content_id">Content ID</string>
+    <string name="info_size">Tamanho</string>
+    <string name="info_files">Arquivos</string>
+    <string name="info_type">Tipo</string>
+    <string name="info_warning_encrypted">PFS criptografado: não é possível extrair sem chaves proprietárias.</string>
+    <string name="file_count">%1$d arquivos</string>
+
+    <string name="options_show">Opções de empacotamento</string>
+    <string name="options_hide">Ocultar opções</string>
+    <string name="content_id_label">Content ID (opcional)</string>
+    <string name="content_id_hint">UP0000-CUSA00000_00-NOME000000000000</string>
+    <string name="content_id_support">Formato: 36 caracteres. Se vazio, o app gera um ID.</string>
+    <string name="title_label">Título (opcional)</string>
+    <string name="title_hint">Meu jogo</string>
+
+    <string name="progress_extracting">Extraindo PKG</string>
+    <string name="progress_packing">Criando PKG</string>
+    <string name="result_success">Concluído</string>
+    <string name="result_error">Não foi possível concluir</string>
+    <string name="error_details">Ver detalhes</string>
+
+    <string name="history_title">Histórico</string>
+    <string name="history_empty">As operações concluídas aparecem aqui.</string>
+    <string name="history_clear">Limpar</string>
+    <string name="history_error_label">Falha</string>
+
+    <string name="notification_channel_name">Operações de PKG</string>
+    <string name="notification_channel_description">Progresso de extração e criação de PKGs</string>
+    <string name="notif_title_extract">Extraindo PKG</string>
+    <string name="notif_title_pack">Criando PKG</string>
+    <string name="notif_done">Operação concluída</string>
+    <string name="notif_failed">Operação falhou</string>
+    <string name="action_cancel">Cancelar</string>
+
+    <string name="status_preparing_extract">Preparando extração…</string>
+    <string name="status_preparing_pack">Preparando empacotamento…</string>
+    <string name="status_copying_pkg">Copiando PKG para o cache…</string>
+    <string name="status_reading_pkg">Lendo e extraindo PFS…</string>
+    <string name="status_copying_result">Copiando arquivos para a pasta escolhida…</string>
+    <string name="status_copying_source">Copiando pasta de origem…</string>
+    <string name="status_building_pkg">Montando PFS e PKG…</string>
+    <string name="status_writing_output">Gravando PKG de saída…</string>
+    <string name="status_done">Concluído</string>
+    <string name="status_extract_done">Extração concluída</string>
+    <string name="status_pack_done">PKG criado</string>
+    <string name="status_cancelling">Cancelando…</string>
+
+    <string name="err_cancelled">Operação cancelada.</string>
+    <string name="err_invalid_pkg">O arquivo não é um PKG válido ou está corrompido.</string>
+    <string name="err_encrypted">Este PKG usa criptografia de varejo e não pode ser extraído sem chaves proprietárias.</string>
+    <string name="err_no_pfs">O PKG não contém uma imagem PFS reconhecível.</string>
+    <string name="err_no_space">Espaço insuficiente no destino.</string>
+    <string name="err_invalid_input">Entrada inválida. Verifique os caminhos e o Content ID.</string>
+    <string name="err_unsupported">Recurso não suportado nesta versão.</string>
+    <string name="err_io">Falha de leitura ou gravação. Verifique o espaço e as permissões.</string>
+    <string name="err_unknown">Falha inesperada.</string>
+
+    <string name="about_title">Sobre o PKG Tool</string>
+    <string name="about_body">Este app lê PKGs não criptografados, extrai o conteúdo do PFS e cria PKGs não assinados a partir de uma pasta.\n\n• PKGs de varejo criptografados não são suportados: não há chaves proprietárias incluídas.\n• Os PKGs criados são no estilo homebrew e não são assinados pela Sony.\n• Esta versão aceita PKGs de até 4 GiB.\n• O acesso a arquivos usa o Storage Access Framework (SAF); nenhuma permissão de armazenamento amplo é solicitada.\n\nFeito com Rust, Jetpack Compose e Material 3 Expressive.</string>
+    <string name="close">Fechar</string>
+    <string name="footer_version">Rust + Jetpack Compose • v%1$s</string>
+    <string name="unsupported_note">PKGs criptografados de varejo não são suportados. Pacotes criados são não assinados.</string>
+    <string name="open_failed">Nenhum aplicativo encontrado para abrir o resultado.</string>
+</resources>

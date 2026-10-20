@@ -1,0 +1,26 @@
+[package]
+name = "pkg_core"
+version = "0.1.0"
+edition = "2021"
+description = "PS4 PKG parsing, extraction and creation core for PKG Tool"
+license = "MIT"
+
+[lib]
+name = "pkg_core"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+jni = "0.21.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+memmap2 = "0.9"
+orbis-pfs = "0.1.0"
+thiserror = "2"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+panic = "abort"
